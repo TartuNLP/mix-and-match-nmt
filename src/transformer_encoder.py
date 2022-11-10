@@ -19,12 +19,8 @@ class MixAndMatchTransformerEncoderBase(TransformerEncoderBase):
     def __init__(self, cfg, dictionary, embed_tokens):
         super().__init__(cfg, dictionary, embed_tokens)
 
-        self.layers.extend(
-            [
-                self.build_encoder_layer(self.get_layer_specific_cfg(cfg, i))
-                for i in range(cfg.encoder.layers)
-            ]
-        )
+        for i in range(cfg.encoder.layers):
+            self.layers[i] = self.build_encoder_layer(self.get_layer_specific_cfg(cfg, i))
 
         if cfg.encoder.normalize_before:
             self.layer_norm = LayerNorm(

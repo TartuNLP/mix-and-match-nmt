@@ -179,6 +179,7 @@ def base_architecture(args):
         ("encoder_extra_output_layernorm", None),
         ("encoder_extra_output_layernorm_layers", None),
         ("encoder_output_dim", args.encoder_embed_dim),
+        ("nonstrict_model_load", False),
     ):
         setattr(args, arg_name, getattr(args, arg_name, arg_default_value))
 
