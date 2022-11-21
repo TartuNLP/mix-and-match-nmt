@@ -1,10 +1,19 @@
 import argparse
+import ast
 import gc
 from collections import OrderedDict
 
 import torch
 
-from fairseq.dataclass.utils import eval_dict
+def eval_dict(x, key_type=str, value_type=str):
+    if x is None:
+        return None
+    if isinstance(x, str):
+        if len(x) == 0:
+            return {}
+        x = ast.literal_eval(x)
+
+    return {key_type(k): value_type(v) for k, v in x.items()}
 
 
 def load_state_dict(path, keep_prefix=None, rename_prefix=None):
@@ -44,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--encoder-rename-prefix", required=False, default=None)
     parser.add_argument("--decoder-rename-prefix", required=False, default=None)
     parser.add_argument(
-        "--extra-rename-prefixes", required=False, default=None, type=eval_dict
+        "--extra-rename-prefixes", required=False, default=None, type=lambda x: eval_dict(x, str, str)
     )
 
     args = parser.parse_args()
