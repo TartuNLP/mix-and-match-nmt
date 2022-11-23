@@ -44,6 +44,7 @@ class MixAndMatchEncoderConfig(EncDecBaseConfig):
     freeze: bool = field(default=False)
     freeze_embeddings: bool = field(default=False)
     freeze_layers: Optional[List[int]] = field(default=None)
+    unfreeze_adapters: bool = field(default=False)
 
     def __post_init__(self):
         if self.output_dim == II("model.encoder.embed_dim"):

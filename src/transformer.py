@@ -19,6 +19,12 @@ def freeze_module(module):
     for _, param in module.named_parameters():
         param.requires_grad = False
 
+def unfreeze_module(module):
+    if not hasattr(module, "named_parameters"):
+        return
+    for _, param in module.named_parameters():
+        param.requires_grad = True
+
 
 class MixAndMatchTransformerModelBase(TransformerModelBase):
     def __init__(self, cfg, encoder, decoder):
@@ -36,7 +42,8 @@ class MixAndMatchTransformerModelBase(TransformerModelBase):
     def build_model(cls, cfg, task):
         cfg.encoder.output_dim = int(cfg.encoder.output_dim)
         mdl = super().build_model(cfg, task)
-        encoder, decoder = mdl.encoder, mdl.decoder
+        encoder: MixAndMatchTransformerEncoderBase = mdl.encoder
+        decoder: MixAndMatchTransformerDecoderBase = mdl.decoder
 
         if cfg.encoder.freeze:
             freeze_module(encoder)
@@ -57,6 +64,13 @@ class MixAndMatchTransformerModelBase(TransformerModelBase):
             freeze_module(decoder.embed_positions)
             freeze_module(decoder.layernorm_embedding)
             freeze_module(decoder.output_projection)
+        if cfg.encoder.unfreeze_adapters:
+            for layer in encoder.layers:
+                if hasattr(layer, "input_adapter") and layer.input_adapter is not None:
+                    unfreeze_module(layer.input_adapter)
+                if hasattr(layer, "output_adapter") and layer.output_adapter is not None:
+                    unfreeze_module(layer.output_adapter)
+
 
         return mdl
 
@@ -171,6 +185,7 @@ def base_architecture(args):
         ("encoder_layer_attention_heads", None),
         ("encoder_layer_attention_heads", None),
         ("encoder_freeze", False),
+        ("encoder_unfreeze_adapters", False),
         ("encoder_freeze_embeddings", False),
         ("encoder_freeze_layers", None),
         ("decoder_freeze", False),
