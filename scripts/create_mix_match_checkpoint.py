@@ -45,8 +45,8 @@ def rename_prefix(name, prefix, rename):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--encoder-model-path")
-    parser.add_argument("--decoder-model-path")
+    parser.add_argument("--encoder-model-path", required=False, default=None)
+    parser.add_argument("--decoder-model-path", required=False, default=None)
     parser.add_argument("--out-path")
     parser.add_argument("--encoder-prefix", required=False, default="encoder")
     parser.add_argument("--decoder-prefix", required=False, default="decoder")
@@ -69,6 +69,21 @@ if __name__ == "__main__":
     final_state_dict = OrderedDict(
         list(encoder_state_dict.items()) + list(decoder_state_dict.items())
     )
+
+    state_items = []
+    if args.encoder_model_path is None and args.decoder_model_path is None:
+        raise ValueError("Encoder and decoder paths can not both be None.")
+    if args.encoder_model_path is not None:
+        state_items += list(load_state_dict(
+        args.encoder_model_path, args.encoder_prefix, args.encoder_rename_prefix
+    ).items())
+        gc.collect()
+    if args.decoder_model_path is not None:
+        state_items += list(load_state_dict(
+        args.decoder_model_path, args.decoder_prefix, args.decoder_rename_prefix
+        ).items())
+        gc.collect()
+    final_state_dict = OrderedDict(state_items)
 
     # option for additional renames
     if args.extra_rename_prefixes is not None:
